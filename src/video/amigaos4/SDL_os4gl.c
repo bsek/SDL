@@ -1,6 +1,6 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2006 Sam Lantinga
+    Copyright (C) 1997-2019 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -37,6 +37,8 @@
 #include <proto/exec.h>
 #include <proto/graphics.h>
 #include <proto/intuition.h>
+#include <proto/minigl.h>
+
 #include <graphics/blitattr.h>
 
 #include <GL/gl.h>
@@ -45,8 +47,8 @@
 //#define DEBUG
 #include "../../main/amigaos4/SDL_os4debug.h"
 
-static struct MiniGLIFace *IMiniGL = 0;
-static struct Library *MiniGLBase = 0;
+struct MiniGLIFace *IMiniGL = NULL;
+struct Library *MiniGLBase = NULL;
 
 extern struct IntuitionIFace *SDL_IIntuition;
 extern struct GraphicsIFace  *SDL_IGraphics;
@@ -59,7 +61,7 @@ extern void SDL_Quit(void);
  * against a shared library version this will require some
  * trickery.
  */
-struct GLContextIFace *mini_CurrentContext = 0;
+DECLSPEC struct GLContextIFace *mini_CurrentContext = NULL;
 
 static int os4video_GetPixelDepth(_THIS)
 {
@@ -147,7 +149,7 @@ os4video_GL_Init(_THIS)
 	if (hidden->IGL)
 	{
 		// Happens when toggling fullscreen mode
-		dprintf("Old OpenGL context exists\n");
+		dprintf("Old OpenGL context %p exists\n", hidden->IGL);
 		return 0;
 	}
 
@@ -166,6 +168,8 @@ os4video_GL_Init(_THIS)
 			hidden->OpenGL = FALSE;
 			return -1;
 		}
+
+		dprintf("MiniGLBase %p\n", MiniGLBase);
 	}
 
 	if (IMiniGL)
@@ -185,6 +189,8 @@ os4video_GL_Init(_THIS)
 
 			return -1;
 		}
+
+		dprintf("IMiniGL %p\n", IMiniGL);
 	}
 
 	SDL_IIntuition->GetWindowAttrs(hidden->win, WA_InnerWidth, &width, WA_InnerHeight, &height, TAG_DONE);
@@ -218,13 +224,15 @@ os4video_GL_Init(_THIS)
 
 	if (hidden->IGL)
 	{
+		mglMakeCurrent(hidden->IGL);
+		mglLockMode(MGL_LOCK_SMART);
+
+		dprintf("MiniGL context %p (%p)\n", hidden->IGL, mini_CurrentContext);
+
 		_this->gl_config.driver_loaded = 1;
 
 		hidden->IGL->GLViewport(0, 0, width, height);
 		hidden->OpenGL = TRUE; // TODO: is this flag needed at all?
-
-		mglMakeCurrent(hidden->IGL);
-		mglLockMode(MGL_LOCK_SMART);
 
 		return 0;
 	}
@@ -262,6 +270,7 @@ os4video_GL_Term(_THIS)
 
 		hidden->IGL->DeleteContext();
 		hidden->IGL = NULL;
+		hidden->OpenGL = FALSE;
 
 		IExec->DropInterface((struct Interface *)IMiniGL);
 		IExec->CloseLibrary(MiniGLBase);
@@ -270,8 +279,6 @@ os4video_GL_Term(_THIS)
 		MiniGLBase = NULL;
 
 		_this->gl_config.driver_loaded = 0;
-
-		hidden->OpenGL = FALSE;
 	}
 }
 
@@ -352,7 +359,7 @@ os4video_GL_GetAttribute(_THIS, SDL_GLattr attrib, int* value)
 int
 os4video_GL_MakeCurrent(_THIS)
 {
-	dprintf("Here\n");
+	dprintf("Context %p\n", mini_CurrentContext);
 	return 0;
 }
 
@@ -411,7 +418,8 @@ os4video_GL_SwapBuffers(_THIS)
 extern void *AmiGetGLProc(const char *proc);
 
 void *
-os4video_GL_GetProcAddress(_THIS, const char *proc) {
+os4video_GL_GetProcAddress(_THIS, const char *proc)
+{
 	void *func = NULL;
 
 	if (!_this->gl_config.driver_loaded)
@@ -426,7 +434,7 @@ os4video_GL_GetProcAddress(_THIS, const char *proc) {
 
 	if (func)
 	{
-		dprintf("Function '%s' loaded\n", proc);
+		dprintf("Function '%s' loaded at %p\n", proc, func);
 	}
 	else
 	{
@@ -438,7 +446,7 @@ os4video_GL_GetProcAddress(_THIS, const char *proc) {
 
 int
 os4video_GL_LoadLibrary(_THIS, const char *path) {
-	/* Library is always open (kuin Muumitalo) */
+	/* Library is always open */
 	_this->gl_config.driver_loaded = 1;
 
 	return 0;

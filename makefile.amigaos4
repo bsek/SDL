@@ -18,7 +18,7 @@
 SHELL	= /bin/sh
 CC      = ppc-amigaos-gcc
 INCLUDE = -I./include
-CFLAGS  = -g -O2 -Wall
+CFLAGS  = -ggdb -O2 -Wall
 LDFLAGS = 
 AR	= ppc-amigaos-ar
 RANLIB	= ppc-amigaos-ranlib
@@ -38,14 +38,12 @@ STATIC_OBJDIR := build/static
 STATIC_OBJS := $(patsubst %.c,%.o, $(addprefix $(STATIC_OBJDIR)/,$(SOURCES)))
 
 STATIC_TESTS_OBJDIR := $(STATIC_OBJDIR)/test
-STATIC_TESTS_OBJS := $(patsubst %.c,%.o, $(addprefix $(STATIC_OBJDIR)/,$(TESTS_SOURCES)))
 STATIC_TESTS := $(patsubst %.c,%, $(addprefix $(STATIC_OBJDIR)/,$(TESTS_SOURCES)))
 
 SHARED_OBJDIR := build/shared
 SHARED_OBJS := $(patsubst %.c,%.o, $(addprefix $(SHARED_OBJDIR)/,$(SOURCES)))
 
 SHARED_TESTS_OBJDIR := $(SHARED_OBJDIR)/test
-SHARED_TESTS_OBJS := $(patsubst %.c,%.o, $(addprefix $(SHARED_OBJDIR)/,$(TESTS_SOURCES)))
 SHARED_TESTS := $(patsubst %.c,%, $(addprefix $(SHARED_OBJDIR)/,$(TESTS_SOURCES)))
 
 ### Implicit compilation rules ###
@@ -58,6 +56,10 @@ $(STATIC_OBJDIR)/test/%: $(STATIC_OBJDIR)/test/%.o
 	@echo Link test $@
 	@mkdir -p $(dir $@)
 	$(CC) -L./$(STATIC_OBJDIR) -o $@ $< -lSDL
+
+# build tests without PIC
+$(SHARED_OBJDIR)/test/%.o: test/%.c
+	$(CC) $(INCLUDE) $(CFLAGS) $(DEBUG_CFLAGS) -o $@ -c $<
 
 $(SHARED_OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
@@ -79,7 +81,7 @@ $(STATIC_OBJDIR)/libSDL.a: $(STATIC_OBJS)
 	ls -l $@
 
 $(SHARED_OBJDIR)/libSDL-1.2.so: $(SHARED_OBJS)
-	$(CC) -shared -Wl,-soname,libSDL-1.2.so -o $@ $^ 
+	$(CC) -shared -Wl,-soname,libSDL-1.2.so -o $@ $^
 
 $(STATIC_TESTS_OBJDIR): $(STATIC_TESTS)
 	cp test/icon.bmp $(STATIC_OBJDIR)/test/
