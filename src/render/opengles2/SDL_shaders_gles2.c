@@ -79,6 +79,28 @@ static const Uint8 GLES2_FragmentSrc_TextureABGRSrc_[] = " \
     } \
 ";
 
+#ifdef __AMIGAOS4__
+/*
+     Source format: ARGB.
+   OpenGL format GL_RGBA.
+
+    To convert to real RGBA,
+                   use GBAR.
+*/
+static const Uint8 GLES2_FragmentSrc_TextureARGBSrc_[] = " \
+    precision mediump float; \
+    uniform sampler2D u_texture; \
+    uniform vec4 u_color; \
+    varying vec2 v_texCoord; \
+    \
+    void main() \
+    { \
+        vec4 argb = texture2D(u_texture, v_texCoord); \
+        gl_FragColor = argb.gbar; \
+        gl_FragColor *= u_color; \
+    } \
+";
+#else
 /* ARGB to ABGR conversion */
 static const Uint8 GLES2_FragmentSrc_TextureARGBSrc_[] = " \
     precision mediump float; \
@@ -95,6 +117,7 @@ static const Uint8 GLES2_FragmentSrc_TextureARGBSrc_[] = " \
         gl_FragColor *= u_color; \
     } \
 ";
+#endif
 
 /* RGB to ABGR conversion */
 static const Uint8 GLES2_FragmentSrc_TextureRGBSrc_[] = " \
