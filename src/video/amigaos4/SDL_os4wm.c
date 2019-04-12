@@ -32,6 +32,7 @@
 #include <proto/input.h>
 #include <proto/wb.h>
 #include <proto/icon.h>
+#include <proto/dos.h>
 
 #include <devices/input.h>
 #include <devices/inputevent.h>
@@ -43,6 +44,7 @@ extern struct GraphicsIFace  *SDL_IGraphics;
 extern struct IntuitionIFace *SDL_IIntuition;
 extern struct WorkbenchIFace *SDL_IWorkbench;
 extern struct IconIFace      *SDL_IIcon;
+extern struct DOSIFace       *SDL_IDos;
 
 struct WMcursor
 {
@@ -449,7 +451,9 @@ os4video_GetDiskObject(_THIS)
 	dprintf("Called\n");
 
 	if (hidden->appName) {
+		BPTR oldDir = SDL_IDos->SetCurrentDir(SDL_IDos->GetProgramDir());
 		diskObject = SDL_IIcon->GetDiskObject(hidden->appName);
+		SDL_IDos->SetCurrentDir(oldDir);
 	}
 
 	if (!diskObject) {
@@ -474,9 +478,15 @@ BOOL CreateAppIcon(_THIS)
 		hidden->currentIcon = os4video_GetDiskObject(_this);
 	}
 
-	hidden->currentAppIcon = SDL_IWorkbench->AddAppIcon(0, (uint32)_this, hidden->currentIconCaption,
+	if (hidden->currentIcon)
+	{
+		hidden->currentIcon->do_CurrentX = NO_ICON_POSITION;
+		hidden->currentIcon->do_CurrentY = NO_ICON_POSITION;
+
+		hidden->currentAppIcon = SDL_IWorkbench->AddAppIcon(0, (uint32)_this, hidden->currentIconCaption,
 								hidden->appPort, 0, hidden->currentIcon,
 								TAG_DONE);
+	}
 
 	return hidden->currentAppIcon ? TRUE : FALSE;
 }
