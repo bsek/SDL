@@ -59,6 +59,7 @@ $(STATIC_OBJDIR)/test/%: $(STATIC_OBJDIR)/test/%.o
 
 # build tests without PIC
 $(SHARED_OBJDIR)/test/%.o: test/%.c
+	@mkdir -p $(dir $@)
 	$(CC) $(INCLUDE) $(CFLAGS) $(DEBUG_CFLAGS) -o $@ -c $<
 
 $(SHARED_OBJDIR)/%.o: %.c
