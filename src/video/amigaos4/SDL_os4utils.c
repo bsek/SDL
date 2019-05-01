@@ -642,20 +642,30 @@ queueMode(const SDL_Rect **rectArray, const SDL_Rect *rect, uint32 count)
 
 	while (i < count)
 	{
-		if ((rectArray[i]->w <= rect->w) && (rectArray[i]->h <= rect->h))
+		const size_t newSize = rect->w * rect->h;
+		const size_t currentSize = rectArray[i]->w * rectArray[i]->h;
+
+		//dprintf("%u/%u: new size %u, current size %u\n", i, count, newSize, currentSize);
+
+		if (newSize > currentSize)
+		{
 			break;
+		}
+
 		i++;
 	}
 
 	if (i < count)
 	{
-		int j;
+		uint32 j;
 
-		for (j = count - 1; j >= (int)i; j--)
-			rectArray[j + 1] = rectArray[j];
+		for (j = count; j > i; j--)
+		{
+			rectArray[j] = rectArray[j - 1];
+		}
 	}
 
-	rectArray[i] = (SDL_Rect *) rect;
+	rectArray[i] = rect;
 }
 
 static void
