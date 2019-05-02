@@ -1523,6 +1523,7 @@ os4video_GetFlagString(Uint32 flags)
 	if ((flags & SDL_OPENGLBLIT) == SDL_OPENGLBLIT) SDL_strlcat(buffer, "OPENGLBLIT ", sizeof(buffer));
 	if (flags & SDL_RESIZABLE)                      SDL_strlcat(buffer, "RESIZEABLE ", sizeof(buffer));
 	if (flags & SDL_NOFRAME)                        SDL_strlcat(buffer, "NOFRAME ", sizeof(buffer));
+	if (flags & SDL_PREALLOC)                       SDL_strlcat(buffer, "PREALLOC", sizeof(buffer));
 
 	return buffer;
 }
@@ -1536,7 +1537,7 @@ os4video_SetVideoMode(_THIS, SDL_Surface *current, int width, int height, int bp
 	BOOL needResize = FALSE;
 	int success = TRUE;
 
-	const Uint32 flagMask = SDL_HWPALETTE | SDL_DOUBLEBUF | SDL_FULLSCREEN |
+	const Uint32 flagMask = SDL_HWPALETTE | SDL_DOUBLEBUF | SDL_FULLSCREEN | SDL_PREALLOC |
 							SDL_OPENGL | SDL_OPENGLBLIT | SDL_RESIZABLE | SDL_NOFRAME | SDL_ANYFORMAT;
 
 	dprintf("Requesting new video mode %dx%dx%d\n", width, height, bpp);
@@ -1551,16 +1552,28 @@ os4video_SetVideoMode(_THIS, SDL_Surface *current, int width, int height, int bp
 		if (current->w != width || current->h != height)
 		{
 			if (!(current->flags & SDL_FULLSCREEN))
+			{
+				dprintf("Requesting window resize\n");
 				needResize = TRUE;
+			}
 			else
+			{
+				dprintf("Requesting screen with new size\n");
 				needNew = TRUE;
+			}
 		}
 
 		if (current->format->BitsPerPixel != bpp)
+		{
+			dprintf("Bits per pixel differ\n");
 			needNew = TRUE;
+		}
 
 		if ((current->flags & flagMask) ^ flags)
+		{
+			dprintf("Surface flags differ\n");
 			needNew = TRUE;
+		}
 	}
 	else
 		needNew = TRUE;
