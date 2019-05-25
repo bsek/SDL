@@ -51,8 +51,6 @@
 # elif defined(SDL_VIDEO_DRIVER_PHOTON)
 #  include <sys/neutrino.h>
 #  include <Ph.h>
-# elif defined(SDL_VIDEO_DRIVER_AMIGAOS4)
-#  include <proto/intuition.h>
 # endif
 #endif
 
