@@ -272,7 +272,7 @@ void os4video_WarpWMCursor(_THIS, Uint16 x, Uint16 y)
 	 * to the app anyway and in the latter case we don't receive mouse
 	 * movements events anyway.
 	 */
-	warpHostPointer  = (hidden->pointerState == pointer_inside_window) && !hidden->isMouseRelative
+	warpHostPointer  = /*(hidden->pointerState == pointer_inside_window) &&*/ !hidden->isMouseRelative
 					&&  hidden->windowActive;
 
 	if (warpHostPointer && (inputReq != NULL))
@@ -292,8 +292,6 @@ void os4video_WarpWMCursor(_THIS, Uint16 x, Uint16 y)
 
 		if (FakeEvent)
 		{
-			dprintf("Building event structure\n");
-
 			NeoPix = (struct IEPointerPixel *) (FakeEvent + 1);
 
 			NeoPix->iepp_Screen = hidden->scr ? hidden->scr : hidden->publicScreen;
@@ -312,7 +310,7 @@ void os4video_WarpWMCursor(_THIS, Uint16 x, Uint16 y)
 			inputReq->io_Length  = sizeof(struct InputEvent);
 			inputReq->io_Command = IND_WRITEEVENT;
 
-			dprintf("Sending fake event\n");
+			dprintf("Sending input event\n");
 
 			IExec->DoIO((struct IORequest *)inputReq);
 
@@ -324,9 +322,8 @@ void os4video_WarpWMCursor(_THIS, Uint16 x, Uint16 y)
 		/* Just warp SDL's notion of the pointer position */
 		SDL_PrivateMouseMotion(0, 0, x, y);
 	}
-	SDL_Unlock_EventThread();
 
-	dprintf("Done\n");
+	SDL_Unlock_EventThread();
 }
 
 void SetMouseColors(_THIS)
