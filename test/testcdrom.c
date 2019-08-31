@@ -18,7 +18,7 @@ static void quit(int rc)
 static void PrintStatus(int driveindex, SDL_CD *cdrom)
 {
 	CDstatus status;
-	char *status_str;
+	char *status_str = "unknown";
 
 	status = SDL_CDStatus(cdrom);
 	switch (status) {
