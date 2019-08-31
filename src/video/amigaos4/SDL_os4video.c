@@ -630,11 +630,9 @@ os4video_OpenScreen(int width, int height, uint32 modeId)
 
 	uint32         openError = 0;
 	uint32         screenWidth;
-	uint32         screenHeight;
 	uint32         screenLeftEdge = 0;
 
 	screenWidth  = os4video_GetWidthFromMode(modeId);
-	screenHeight = os4video_GetHeightFromMode(modeId);
 
 	/* If requested width is smaller than this mode's width, then centre
 	 * the screen horizontally.

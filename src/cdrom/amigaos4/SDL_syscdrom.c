@@ -301,7 +301,7 @@ void SDL_SYS_CDQuit(void)
 			if( cddrives[i]->port )
 				IExec->FreeSysObject( ASOT_PORT, cddrives[i]->port );
 		
-			if( cddrives[i]->inbuf );
+			if( cddrives[i]->inbuf )
 				IExec->FreeVec( cddrives[i]->inbuf );
 		
 			if( cddrives[i]->sensebuf )
@@ -398,7 +398,6 @@ static int SDL_SYS_CDGetTOC(SDL_CD *cdrom)
 	{
 		uint8 *b;
 		struct amigacd *entry = cddrives[cdrom->id];
-		struct CD_TOC *toc;
 		int32 i;
 		
 		b = (uint8 *)entry->inbuf;
@@ -526,7 +525,7 @@ static void SDL_SYS_CDClose(SDL_CD *cdrom)
 	if( entry->port )
 		IExec->FreeSysObject( ASOT_PORT, entry->port );
 
-	if( entry->inbuf );
+	if( entry->inbuf )
 		IExec->FreeVec( entry->inbuf );
 
 	if( entry->sensebuf )
