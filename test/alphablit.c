@@ -7,13 +7,11 @@ gcc alphablit.c -Isdk:local/common/include/SDL -use-dynld -lSDL -lauto -g -Wall 
 #include "SDL/SDL.h"
 
 #include <stdio.h>
+#ifdef __amigaos4__
 #include <proto/exec.h>
-
-#define BENCHMARK_VERSION "0.2"
-
-#ifndef MIN
-#define MIN(x,y) (((x) < (y)) ? (x) : (y))
 #endif
+
+#define BENCHMARK_VERSION "0.3"
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -37,7 +35,9 @@ static const SDL_Color GREEN_COLOR = { 0, 255, 0, 255 };
 static const SDL_Color BLUE_COLOR = { 0, 0, 255, 255 };
 
 #if 0
+#ifdef __amigaos4__
 #define DEBUGME IExec->DebugPrintF("%s %d\n", __FUNCTION__, __LINE__);
+#endif
 #else
 #define DEBUGME
 #endif
@@ -197,7 +197,6 @@ typedef struct ModeInfo
 	int useSurfaceAlpha;
 	int useColorKey;
 	int depth;
-	int iterations;
 }  ModeInfo;
 
 static void Lock(SDL_Surface *texture)
@@ -327,7 +326,7 @@ static const char * getAlphaString(Uint32 type)
 static void setMode(ModeInfo mi)
 {
 	char buffer[128];
-	int flags = (mi.useFullscreen ? SDL_FULLSCREEN : 0) | (mi.useHardware ? SDL_HWSURFACE : SDL_SWSURFACE) | SDL_HWPALETTE;
+	const int flags = (mi.useFullscreen ? SDL_FULLSCREEN : 0) | (mi.useHardware ? SDL_HWSURFACE : SDL_SWSURFACE) | SDL_HWPALETTE;
 
 	snprintf(buffer, sizeof(buffer), "%d-bit %s surface %s. %s alpha, %scolor key",
 		mi.depth,
@@ -417,13 +416,14 @@ static SDL_bool checkQuit()
 	return quit;
 }
 
-static void test(Uint32 bytesPerPixel, Uint32 iterations, Uint32 sleep)
+static void test(Uint32 bytesPerPixel, Uint32 duration, Uint32 sleep)
 {
-	Uint32 start = SDL_GetTicks();
+	const Uint32 start = SDL_GetTicks();
 
-	Uint32 i;
+	Uint32 ticks;
+	Uint32 frames = 0;
 
-	for (i = 0; i < iterations; i++)
+	do
 	{
 		if (checkQuit())
 		{
@@ -433,34 +433,33 @@ static void test(Uint32 bytesPerPixel, Uint32 iterations, Uint32 sleep)
 		draw(red, sleep);
 		draw(green, sleep);
 		draw(blue, sleep);
-	}
 
-	Uint32 finish = SDL_GetTicks();
+		ticks = SDL_GetTicks() - start;
+		frames += 3;
+	} while (ticks < duration);
 
-	Uint32 duration = finish - start;
-
-	Uint32 frames = iterations * 3;
-	Uint32 blits = frames * BLITS_PER_ITERATION;
-
-	if (duration == 0)
+	if (ticks == 0)
 	{
 		puts("Duration 0");
 		return;
 	}
 
-	printf("RESULT: duration %u ms, %.1f frames/s, %u blits, %.1f blits/s\n",
-		duration,
-		1000.0f * frames / duration,
+	const Uint32 blits = frames * BLITS_PER_ITERATION;
+
+	printf("RESULT: %u frames in %u ms, %.1f frames/s, %u blits, %.1f blits/s\n",
+		frames,
+		ticks,
+		1000.0f * frames / ticks,
 		blits,
-		1000.0f * blits / duration);
+		1000.0f * blits / ticks);
 }
 
 
-static void parseArgs(int argc, char* argv[], Uint32 *iterations, Uint32 *sleep)
+static void parseArgs(int argc, char* argv[], Uint32 *duration, Uint32 *sleep)
 {
 	if (argc > 1)
 	{
-		*iterations = atoi(argv[1]);
+		*duration = atoi(argv[1]);
 
 		if (argc > 2)
 		{
@@ -468,7 +467,7 @@ static void parseArgs(int argc, char* argv[], Uint32 *iterations, Uint32 *sleep)
 		}
 	}
 
-	printf("Iterations=%d, Blits=%d, Delay=%d ms\n", *iterations, BLITS_PER_ITERATION, *sleep);
+	printf("Duration=%d, Blits=%d, Delay=%d ms\n", *duration, BLITS_PER_ITERATION, *sleep);
 }
 
 static void checkVersion(void)
@@ -490,18 +489,18 @@ static void checkVersion(void)
 
 static void printHelp(void)
 {
-	puts("USAGE: 'alphablit <ITER> <DELAY>', where");
-	puts("\t<ITER> is number of test iterations per mode and");
+	puts("USAGE: 'alphablit <DURATION> <DELAY>', where");
+	puts("\t<DURATION> is test duration in milliseconds and");
 	puts("\t<DELAY> is delay in milliseconds after each blit sequence, for visual debugging.");
 }
 
-static void runTest(ModeInfo mi, Uint32 iterations, Uint32 sleep)
+static void runTest(ModeInfo mi, Uint32 duration, Uint32 sleep)
 {
 	setMode(mi);
 
 	if (view)
 	{
-		test(mi.depth / 8, MIN(mi.iterations, iterations), sleep);
+		test(mi.depth / 8, duration, sleep);
 	}
 	else
 	{
@@ -522,28 +521,28 @@ static void runTest(ModeInfo mi, Uint32 iterations, Uint32 sleep)
 #define NO_COLOR_KEY 0
 #define USE_COLOR_KEY 1
 
-static void runTests(Uint32 iterations, Uint32 sleep)
+static void runTests(Uint32 duration, Uint32 sleep)
 {
 	ModeInfo tests[] =
 	{
-		{ WINDOW, SW, PER_PIXEL_ALPHA, NO_COLOR_KEY, 16, 100 },
-		{ WINDOW, SW, PER_PIXEL_ALPHA, NO_COLOR_KEY, 32, 100 },
-		{ WINDOW, SW, PER_SURFACE_ALPHA, NO_COLOR_KEY, 16, 100 },
-		{ WINDOW, SW, PER_SURFACE_ALPHA, NO_COLOR_KEY, 32, 100 },
+		{ WINDOW, SW, PER_PIXEL_ALPHA, NO_COLOR_KEY, 16 },
+		{ WINDOW, SW, PER_PIXEL_ALPHA, NO_COLOR_KEY, 32 },
+		{ WINDOW, SW, PER_SURFACE_ALPHA, NO_COLOR_KEY, 16 },
+		{ WINDOW, SW, PER_SURFACE_ALPHA, NO_COLOR_KEY, 32 },
 
-		{ WINDOW, SW, PER_SURFACE_ALPHA, USE_COLOR_KEY, 16, 100 },
-		{ WINDOW, SW, PER_SURFACE_ALPHA, USE_COLOR_KEY, 32, 100 },
+		{ WINDOW, SW, PER_SURFACE_ALPHA, USE_COLOR_KEY, 16 },
+		{ WINDOW, SW, PER_SURFACE_ALPHA, USE_COLOR_KEY, 32 },
 
-		//{ FULLSCREEN, SW, NO_ALPHA, NO_COLOR_KEY, 8, 100 },
-		{ FULLSCREEN, SW, PER_PIXEL_ALPHA, NO_COLOR_KEY, 16, 100 },
-		{ FULLSCREEN, SW, PER_PIXEL_ALPHA, NO_COLOR_KEY, 32, 100 },
+		//{ FULLSCREEN, SW, NO_ALPHA, NO_COLOR_KEY, 8 },
+		{ FULLSCREEN, SW, PER_PIXEL_ALPHA, NO_COLOR_KEY, 16 },
+		{ FULLSCREEN, SW, PER_PIXEL_ALPHA, NO_COLOR_KEY, 32 },
 
-		{ FULLSCREEN, SW, PER_SURFACE_ALPHA, NO_COLOR_KEY, 16, 100 },
-		{ FULLSCREEN, SW, PER_SURFACE_ALPHA, NO_COLOR_KEY, 32, 100 },
+		{ FULLSCREEN, SW, PER_SURFACE_ALPHA, NO_COLOR_KEY, 16 },
+		{ FULLSCREEN, SW, PER_SURFACE_ALPHA, NO_COLOR_KEY, 32 },
 
 		//{ FULLSCREEN, SW, NO_ALPHA, USE_COLOR_KEY, 8, 5 },
-		{ FULLSCREEN, SW, PER_SURFACE_ALPHA, USE_COLOR_KEY, 16, 100 },
-		{ FULLSCREEN, SW, PER_SURFACE_ALPHA, USE_COLOR_KEY, 32, 100 },
+		{ FULLSCREEN, SW, PER_SURFACE_ALPHA, USE_COLOR_KEY, 16 },
+		{ FULLSCREEN, SW, PER_SURFACE_ALPHA, USE_COLOR_KEY, 32 },
 	};
 
 	int t;
@@ -551,22 +550,24 @@ static void runTests(Uint32 iterations, Uint32 sleep)
 	{
 		if (quit == SDL_FALSE)
 		{
+#ifdef __amigaos4__
 			IExec->DebugPrintF("...Running test #%d\n", t);
+#endif
 			printf("...Running test #%d...\n", t);
 
 			tests[t].useHardware = SW;
-			runTest(tests[t], iterations, sleep);
+			runTest(tests[t], duration, sleep);
 
 			tests[t].useHardware = HW;
-			runTest(tests[t], iterations, sleep);
+			runTest(tests[t], duration, sleep);
 		}
 	}
 }
 
 int main(int argc, char* argv[])
 {
-	Uint32 iterations = 50;
 	Uint32 sleep = 0;
+	Uint32 duration = 3000;
 
 	if (SDL_Init(SDL_INIT_VIDEO))
 	{
@@ -579,11 +580,11 @@ int main(int argc, char* argv[])
 
 	checkVideoInfo();
 
-	parseArgs(argc, argv, &iterations, &sleep);
+	parseArgs(argc, argv, &duration, &sleep);
 
 	printf("Display size %d*%d, blit size %d*%d\n", WIDTH, HEIGHT, BLIT_WIDTH, BLIT_HEIGHT);
 
-	runTests(iterations, sleep);
+	runTests(duration, sleep);
 
 	freeTextures();
 
