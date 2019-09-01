@@ -265,15 +265,7 @@ void os4video_WarpWMCursor(_THIS, Uint16 x, Uint16 y)
 
 	SDL_Lock_EventThread();
 
-	/* If the host mouse pointer is outside of the SDL window or the SDL
-	 * window is inactive then we just need to warp SDL's notion of where
-	 * the pointer position is - we don't need to move the Workbench
-	 * pointer. In the former case, we don't pass mass movements on to
-	 * to the app anyway and in the latter case we don't receive mouse
-	 * movements events anyway.
-	 */
-	warpHostPointer  = /*(hidden->pointerState == pointer_inside_window) &&*/ !hidden->isMouseRelative
-					&&  hidden->windowActive;
+	warpHostPointer = !hidden->isMouseRelative && hidden->windowActive;
 
 	if (warpHostPointer && (inputReq != NULL))
 	{
