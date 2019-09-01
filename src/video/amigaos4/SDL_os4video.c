@@ -1535,7 +1535,7 @@ os4video_SetVideoMode(_THIS, SDL_Surface *current, int width, int height, int bp
 	BOOL needResize = FALSE;
 	int success = TRUE;
 
-	const Uint32 flagMask = SDL_HWPALETTE | SDL_DOUBLEBUF | SDL_FULLSCREEN | SDL_PREALLOC |
+	const Uint32 flagMask = SDL_HWPALETTE | SDL_DOUBLEBUF | SDL_FULLSCREEN |
 							SDL_OPENGL | SDL_OPENGLBLIT | SDL_RESIZABLE | SDL_NOFRAME | SDL_ANYFORMAT;
 
 	dprintf("Requesting new video mode %dx%dx%d\n", width, height, bpp);
@@ -1567,7 +1567,7 @@ os4video_SetVideoMode(_THIS, SDL_Surface *current, int width, int height, int bp
 			needNew = TRUE;
 		}
 
-		if ((current->flags & flagMask) ^ flags)
+		if ((current->flags & flagMask) ^ (flags & flagMask))
 		{
 			dprintf("Surface flags differ\n");
 			needNew = TRUE;
