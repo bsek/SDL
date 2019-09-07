@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2019 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -54,10 +54,12 @@ typedef struct
     struct Gadget   * gadget;
     struct Image    * image;
 
+    BOOL              mousePointerInside;
 } SDL_WindowData;
 
 extern void OS4_GetWindowSize(_THIS, struct Window * window, int * width, int * height);
 extern void OS4_GetWindowActiveSize(SDL_Window * window, int * width, int * height);
+extern SDL_bool OS4_IsFullscreen(SDL_Window * window);
 
 extern int OS4_CreateWindow(_THIS, SDL_Window * window);
 extern int OS4_CreateWindowFrom(_THIS, SDL_Window * window, const void *data);

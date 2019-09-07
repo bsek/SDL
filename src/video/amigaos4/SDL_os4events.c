@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2019 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -37,7 +37,7 @@
 #include "../../events/scancodes_amiga.h"
 #include "../../events/SDL_events_c.h"
 
-//#define DEBUG
+#define DEBUG
 #include "../../main/amigaos4/SDL_os4debug.h"
 
 extern SDL_bool (*OS4_ResizeGlContext)(_THIS, SDL_Window * window);
@@ -281,8 +281,8 @@ OS4_HandleMouseMotion(_THIS, struct MyIntuiMessage * imsg)
     if (sdlwin) {
         HitTestInfo *hti = &((SDL_WindowData *)sdlwin->driverdata)->hti;
 
-        dprintf("X:%d Y:%d, ScreenX: %d ScreenY: %d\n",
-            imsg->WindowMouseX, imsg->WindowMouseY, imsg->ScreenMouseX, imsg->ScreenMouseY);
+        //dprintf("X:%d Y:%d, ScreenX: %d ScreenY: %d\n",
+        //    imsg->WindowMouseX, imsg->WindowMouseY, imsg->ScreenMouseX, imsg->ScreenMouseY);
 
         globalMouseState.x = imsg->ScreenMouseX;
         globalMouseState.y = imsg->ScreenMouseY;
@@ -456,9 +456,9 @@ OS4_HandleMove(_THIS, struct MyIntuiMessage * imsg)
     SDL_Window *sdlwin = OS4_FindWindow(_this, imsg->IDCMPWindow);
 
     if (sdlwin) {
-            SDL_SendWindowEvent(sdlwin, SDL_WINDOWEVENT_MOVED,
-                imsg->IDCMPWindow->LeftEdge,
-                imsg->IDCMPWindow->TopEdge);
+        SDL_SendWindowEvent(sdlwin, SDL_WINDOWEVENT_MOVED,
+            imsg->IDCMPWindow->LeftEdge,
+            imsg->IDCMPWindow->TopEdge);
 
         dprintf("Window %p changed\n", sdlwin);
     }
@@ -503,7 +503,7 @@ OS4_HandleTicks(_THIS, struct MyIntuiMessage * imsg)
     SDL_Window *sdlwin = OS4_FindWindow(_this, imsg->IDCMPWindow);
 
     if (sdlwin) {
-        if ((sdlwin->flags & SDL_WINDOW_INPUT_GRABBED) && !(sdlwin->flags & SDL_WINDOW_FULLSCREEN) &&
+        if ((sdlwin->flags & SDL_WINDOW_INPUT_GRABBED) && !OS4_IsFullscreen(sdlwin) &&
             (SDL_GetKeyboardFocus() == sdlwin)) {
 
             SDL_WindowData *data = sdlwin->driverdata;
@@ -586,6 +586,65 @@ OS4_CopyIdcmpMessage(struct IntuiMessage * src, struct MyIntuiMessage * dst)
     }
 }
 
+static BOOL
+OS4_MousePointerInside(_THIS, struct MyIntuiMessage * msg)
+{
+    const int x = msg->WindowMouseX;
+    const int y = msg->WindowMouseY;
+    BOOL inside = FALSE;
+
+    //dprintf("Checking whether point %d, %d inside the window '%s'...\n", x, y, msg->IDCMPWindow->Title);
+
+    if (x >= 0 && x < msg->Width && y >= 0 && y < msg->Height) {
+        struct Window* window = msg->IDCMPWindow;
+        struct Layer_Info* layerInfo = &window->WScreen->LayerInfo;
+        struct Layer* layer;
+
+        ILayers->LockLayerInfo(layerInfo);
+        layer = ILayers->WhichLayer(layerInfo, msg->ScreenMouseX, msg->ScreenMouseY);
+        ILayers->UnlockLayerInfo(layerInfo);
+
+        inside = layer == window->WLayer;
+
+        if (!inside) {
+            dprintf("Layer belongs to some other window\n");
+        }
+    }
+
+    //dprintf("Point is %sside the window '%s' area\n", inside ? "in" : "out", sdlwin->title);
+
+    return inside;
+}
+
+static void
+OS4_UpdateMouseFocus(_THIS, struct MyIntuiMessage * msg)
+{
+    SDL_Window *sdlwin = OS4_FindWindow(_this, msg->IDCMPWindow);
+    SDL_WindowData *data;
+
+    BOOL inside = TRUE;
+
+    if (!sdlwin) {
+        return;
+    }
+
+    if (!OS4_IsFullscreen(sdlwin)) {
+        inside = OS4_MousePointerInside(_this, msg);
+    }
+
+    data = (SDL_WindowData *)sdlwin->driverdata;
+
+    if (inside != data->mousePointerInside) {
+        dprintf("mousePointerInside status for window '%s' changes [%sside]\n", sdlwin->title, inside ? "in" : "out");
+
+        if (inside) {
+            SDL_SetMouseFocus(sdlwin);
+        }
+
+        data->mousePointerInside = inside;
+    }
+}
+
 // TODO: we need to handle Intuition's window move (repositioning) event and update sdlwin's x&y
 static void
 OS4_HandleIdcmpMessages(_THIS, struct MsgPort * msgPort)
@@ -602,6 +661,7 @@ OS4_HandleIdcmpMessages(_THIS, struct MsgPort * msgPort)
         switch (msg.Class) {
             case IDCMP_MOUSEMOVE:
                 OS4_HandleMouseMotion(_this, &msg);
+                OS4_UpdateMouseFocus(_this, &msg);
                 break;
 
             case IDCMP_RAWKEY:

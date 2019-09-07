@@ -73,7 +73,7 @@ OS4_GetWindowActiveSize(SDL_Window * window, int * width, int * height)
     }
 }
 
-static SDL_bool
+SDL_bool
 OS4_IsFullscreen(SDL_Window * window)
 {
     return (window->flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP));
