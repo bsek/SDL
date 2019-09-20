@@ -1269,7 +1269,7 @@ os4video_SetupSurfacePixelFormat(_THIS, int bpp, int screenDepth, SDL_Surface *c
 						   hidden->screenSdlFormat.Rmask,
 						   hidden->screenSdlFormat.Gmask,
 						   hidden->screenSdlFormat.Bmask,
-						   hidden->screenSdlFormat.Amask);
+						   0 /* hidden->screenSdlFormat.Amask */);
 	}
 	else
 	{
