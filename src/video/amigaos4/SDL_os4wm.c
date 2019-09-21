@@ -550,6 +550,7 @@ void os4video_UniconifyWindow(_THIS)
 		/* Show the window */
 		SDL_PrivateAppActive(1, SDL_APPACTIVE);
 		SDL_IIntuition->ShowWindow(hidden->win, WINDOW_FRONTMOST);
+		SDL_IIntuition->ActivateWindow(hidden->win);
 	}
 }
 
