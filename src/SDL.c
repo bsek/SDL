@@ -53,7 +53,9 @@ static SDL_version version =
 	{ SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL };
 
 #ifdef __amigaos4__
-static const char __attribute((used)) amiga_ver[] = "$VER: SDL1_2_15 1.4 (22.01.2018)\0";
+#ifdef __AMIGADATE__
+static const char __attribute((used)) amiga_ver[] = "$VER: SDL1_2_16 1.4 (" __AMIGADATE__ ")\0";
+#endif
 #endif
 
 /* The initialized subsystems */
@@ -169,7 +171,7 @@ static SDL_bool initialized = SDL_FALSE;
 
 static void os4_initialize(void)
 {
-	dprintf("SDL %d.%d.%d\n", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL);
+	dprintf("SDL %d.%d.%d (%s)\n", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL, __DATE__);
 
 	if (!initialized) {
 		// Call "constructor" functions manually
