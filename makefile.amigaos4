@@ -24,6 +24,7 @@ AR	= ppc-amigaos-ar
 RANLIB	= ppc-amigaos-ranlib
 PIC_CFLAGS = -fPIC -DPIC
 DEBUG_CFLAGS = -DDEBUG
+AMIGADATE = $(shell date +"%-d.%-m.%Y")
 
 ### Sources and objects files, build directories ###
 
@@ -64,7 +65,7 @@ $(SHARED_OBJDIR)/test/%.o: test/%.c
 
 $(SHARED_OBJDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(PIC_CFLAGS) $(INCLUDE) $(CFLAGS) $(DEBUG_CFLAGS) -o $@ -c $<
+	$(CC) $(PIC_CFLAGS) $(INCLUDE) $(CFLAGS) $(DEBUG_CFLAGS) -D__AMIGADATE__=\"$(AMIGADATE)\" -o $@ -c $<
 
 $(SHARED_OBJDIR)/test/%: $(SHARED_OBJDIR)/test/%.o
 	@echo Link test $@
