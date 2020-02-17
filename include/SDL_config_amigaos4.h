@@ -21,8 +21,8 @@
     slouken@libsdl.org
 */
 
-#ifndef _SDL_config_h
-#define _SDL_config_h
+#ifndef _SDL_config_amigaos4_h
+#define _SDL_config_amigaos4_h
 
 /* This is a set of defines to configure the SDL features */
 
@@ -297,7 +297,7 @@
 /* #undef SDL_VIDEO_DRIVER_XBIOS */
 
 /* Enable OpenGL support */
-#define SDL_VIDEO_OPENGL 1
+//#define SDL_VIDEO_OPENGL 1
 /* #undef SDL_VIDEO_OPENGL_GLX */
 /* #undef SDL_VIDEO_OPENGL_WGL */
 /* #undef SDL_VIDEO_OPENGL_OSMESA */
@@ -308,4 +308,4 @@
 /* #undef SDL_HERMES_BLITTERS */
 /* #undef SDL_ALTIVEC_BLITTERS */
 
-#endif /* _SDL_config_h */
+#endif /* _SDL_config_amigaos4_h */

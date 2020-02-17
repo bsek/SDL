@@ -37,9 +37,9 @@
 #include <stdio.h>
 #endif
 #if defined(STDC_HEADERS)
-# include <stdlib.h>
-# include <stddef.h>
-# include <stdarg.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <stdarg.h>
 #else
 # if defined(HAVE_STDLIB_H)
 #  include <stdlib.h>
@@ -588,7 +588,7 @@ extern DECLSPEC int SDLCALL SDL_vsnprintf(char *text, size_t maxlen, const char 
 #endif
 
 /** @name SDL_ICONV Error Codes
- *  The SDL implementation of iconv() returns these error codes 
+ *  The SDL implementation of iconv() returns these error codes
  */
 /*@{*/
 #define SDL_ICONV_ERROR		(size_t)-1

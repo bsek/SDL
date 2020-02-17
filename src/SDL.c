@@ -28,7 +28,7 @@
 #if !SDL_VIDEO_DISABLED
 #include "video/SDL_leaks.h"
 #endif
-#include "mydebug.h"
+#include "SDL_os3debug.h"
 
 #if SDL_THREAD_PTH
 #include <pth.h>

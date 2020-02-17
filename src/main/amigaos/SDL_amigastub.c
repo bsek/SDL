@@ -10,7 +10,7 @@
 #include <inline/exec.h>
 #include <sdl_config.h>
 #include "stabs.h"
-#include "../../../mydebug.h"
+#include "SDL_os3debug.h"
 
 /******************************************************************************/
 /*                                                                            */

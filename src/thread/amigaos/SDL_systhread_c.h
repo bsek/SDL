@@ -49,7 +49,7 @@
 #endif
 
 #include <string.h>
-#include "../../../mydebug.h"
+#include "src/main/amigaos/SDL_os3debug.h"
 
 extern struct ExecBase *SysBase;
 extern struct DosLibrary *DOSBase;

@@ -7,7 +7,7 @@
 #include <exec/types.h>
 #include <proto/exec.h>
 
-#include "../../../mydebug.h"
+#include "SDL_os3debug.h"
 
 /******************************************************************************/
 /*                                                                            */
