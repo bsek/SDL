@@ -297,7 +297,7 @@
 /* #undef SDL_VIDEO_DRIVER_XBIOS */
 
 /* Enable OpenGL support */
-//#define SDL_VIDEO_OPENGL 1
+#define SDL_VIDEO_OPENGL 1
 /* #undef SDL_VIDEO_OPENGL_GLX */
 /* #undef SDL_VIDEO_OPENGL_WGL */
 /* #undef SDL_VIDEO_OPENGL_OSMESA */

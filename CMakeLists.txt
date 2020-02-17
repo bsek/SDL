@@ -159,6 +159,7 @@ if(AMIGA)
 			${PROJECT_SOURCE_DIR}/src/main/amigaos/SDL_lutstub.s
 
 			# CDROM
+			${PROJECT_SOURCE_DIR}/src/cdrom/dummy/SDL_syscdrom.c
 			#${PROJECT_SOURCE_DIR}/src/cdrom/amigaos/SDL_syscdrom.c
 
 			# AUDIO
