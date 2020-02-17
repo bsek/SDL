@@ -213,8 +213,4 @@ extern AudioBootStrap AmigaOS4_bootstrap;
 /* This is the current audio device */
 extern SDL_AudioDevice *current_audio;
 
-#if !defined(__SASC) && !defined(WARPOS)
-extern struct ExecBase *SysBase;
-#endif
-
 #endif /* _SDL_sysaudio_h */
