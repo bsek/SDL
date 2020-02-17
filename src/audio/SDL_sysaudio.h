@@ -46,6 +46,8 @@
 #include <devices/ahi.h>
 #endif
 #include "SDL_os3debug.h"
+
+extern struct ExecBase *SysBase;
 #endif
 
 /* The SDL audio driver */

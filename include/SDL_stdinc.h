@@ -37,9 +37,9 @@
 #include <stdio.h>
 #endif
 #if defined(STDC_HEADERS)
-#include <stdlib.h>
-#include <stddef.h>
-#include <stdarg.h>
+# include <stdlib.h>
+# include <stddef.h>
+# include <stdarg.h>
 #else
 # if defined(HAVE_STDLIB_H)
 #  include <stdlib.h>
