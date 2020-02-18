@@ -68,6 +68,9 @@ set(CPACK_PACKAGE_VERSION_PATCH ${SDL_PATCHLEVEL})
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SDL1.2")
 include(CPack)
 
+# SET COMPILE TARGETS
+set(LIB_TARGET "STATIC")
+
 # Generate version header from the above
 configure_file(
 		${PROJECT_SOURCE_DIR}/include/SDL_version.h.in
@@ -147,10 +150,29 @@ set(SOURCE_FILES
 		${PROJECT_SOURCE_DIR}/src/stdlib/SDL_malloc.c
 		${PROJECT_SOURCE_DIR}/src/stdlib/SDL_qsort.c
 		${PROJECT_SOURCE_DIR}/src/stdlib/SDL_stdlib.c
-		${PROJECT_SOURCE_DIR}/src/stdlib/SDL_string.c
+		${PROJECT_SOURCE_DIR}/src/stdlib/SDL_string.c)
 
-
-		)
+set(INCLUDE_PATHS
+		${PROJECT_SOURCE_DIR}/
+		${PROJECT_SOURCE_DIR}/include
+		${PROJECT_BINARY_DIR}/include
+		${PROJECT_SOURCE_DIR}/include-GL
+		${PROJECT_SOURCE_DIR}/src/audio
+		${PROJECT_SOURCE_DIR}/src/audio/dummy
+		${PROJECT_SOURCE_DIR}/src/audio/disk
+		${PROJECT_SOURCE_DIR}/src/audio/amigaos
+		${PROJECT_SOURCE_DIR}/src/events
+		${PROJECT_SOURCE_DIR}/src/joystick
+		${PROJECT_SOURCE_DIR}/src/main/amigaos
+		${PROJECT_SOURCE_DIR}/src/thread
+		${PROJECT_SOURCE_DIR}/src/thread/amigaos
+		${PROJECT_SOURCE_DIR}/src/thread/pth
+		${PROJECT_SOURCE_DIR}/src/thread/pthread
+		${PROJECT_SOURCE_DIR}/src/timer
+		${PROJECT_SOURCE_DIR}/src/video
+		${PROJECT_SOURCE_DIR}/src/video/cybergfx
+		${PROJECT_SOURCE_DIR}/src/video/apollo
+		${PROJECT_SOURCE_DIR}/src/video/dummy)
 
 if(AMIGA)
 	if(AMIGAOS3)
@@ -194,6 +216,8 @@ if(AMIGA)
 			${PROJECT_SOURCE_DIR}/src/loadso/dummy/SDL_sysloadso.c
 				)
 	elseif(AMIGAOS4)
+		set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
+		list(APPEND LIB_TARGET "SHARED")
 		list(APPEND SOURCE_FILES
 			# MAIN
 			${PROJECT_SOURCE_DIR}/src/main/amigaos4/SDL_os4timer.c
@@ -232,59 +256,40 @@ if(AMIGA)
 	endif()
 endif()
 
-add_library(${LIBNAME}
-		STATIC
-			${SOURCE_FILES})
+foreach(target ${LIB_TARGET})
+	add_library(${target}
+			${target}
+				${SOURCE_FILES})
+	target_include_directories(${target}
+			PRIVATE
+			${INCLUDE_PATHS})
+	set_target_properties(${target} PROPERTIES OUTPUT_NAME ${LIBNAME})
 
-target_include_directories(${LIBNAME}
-		PRIVATE
-			${PROJECT_SOURCE_DIR}/
-			${PROJECT_SOURCE_DIR}/include
-			${PROJECT_BINARY_DIR}/include
-			${PROJECT_SOURCE_DIR}/include-GL
-			${PROJECT_SOURCE_DIR}/src/audio
-			${PROJECT_SOURCE_DIR}/src/audio/dummy
-			${PROJECT_SOURCE_DIR}/src/audio/disk
-			${PROJECT_SOURCE_DIR}/src/audio/amigaos
-			${PROJECT_SOURCE_DIR}/src/events
-			${PROJECT_SOURCE_DIR}/src/joystick
-			${PROJECT_SOURCE_DIR}/src/main/amigaos
-			${PROJECT_SOURCE_DIR}/src/thread
-			${PROJECT_SOURCE_DIR}/src/thread/amigaos
-			${PROJECT_SOURCE_DIR}/src/thread/pth
-			${PROJECT_SOURCE_DIR}/src/thread/pthread
-			${PROJECT_SOURCE_DIR}/src/timer
-			${PROJECT_SOURCE_DIR}/src/video
-			${PROJECT_SOURCE_DIR}/src/video/cybergfx
-			${PROJECT_SOURCE_DIR}/src/video/apollo
-			${PROJECT_SOURCE_DIR}/src/video/dummy)
+	target_compile_definitions(${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:NOIXEMUL _HAVE_STDINT_H>)
 
-target_compile_definitions(${LIBNAME} PRIVATE $<$<COMPILE_LANGUAGE:C>:NOIXEMUL _HAVE_STDINT_H>)
-
-if(NOT DEBUG)
-	target_compile_options(${LIBNAME} PUBLIC $<$<COMPILE_LANGUAGE:C>:-O3 -ffast-math>)
-endif()
-
-if(AMIGA)
 	if(NOT DEBUG)
-		target_compile_definitions(${LIBNAME} PRIVATE $<$<COMPILE_LANGUAGE:C>:NO_AMIGADEBUG>)
+		target_compile_options(${target} PUBLIC $<$<COMPILE_LANGUAGE:C>:-O3 -ffast-math>)
 	endif()
 
-	if(APOLLOBLIT AND AMIGAOS3)
-		target_compile_definitions(${LIBNAME} PRIVATE $<$<COMPILE_LANGUAGE:C>:APOLLO_BLIT>)
-		target_compile_options(${LIBNAME} PRIVATE -I${CMAKE_SYSROOT}/m68k-amigaos/ndk-include)
-		target_include_directories(${LIBNAME} PUBLIC video/apollo)
-		enable_language(ASM-VASM)
-		target_sources(${LIBNAME}
-				PRIVATE
-					# APOLLO AMMX
-					src/video/apollo/blitapollo.asm
-					src/video/apollo/apolloammxenable.asm
-					src/video/apollo/colorkeyapollo.asm)
+	if(AMIGA)
+		if(NOT DEBUG)
+			target_compile_definitions(${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:NO_AMIGADEBUG>)
+		endif()
 
+		if(APOLLOBLIT AND AMIGAOS3)
+			target_compile_definitions(${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:APOLLO_BLIT>)
+			target_compile_options(${target} PRIVATE -I${CMAKE_SYSROOT}/m68k-amigaos/ndk-include)
+			target_include_directories(${target} PUBLIC video/apollo)
+			enable_language(ASM-VASM)
+			target_sources(${target}
+					PRIVATE
+						# APOLLO AMMX
+						src/video/apollo/blitapollo.asm
+						src/video/apollo/apolloammxenable.asm
+						src/video/apollo/colorkeyapollo.asm)
+		endif()
 	endif()
-endif()
-
+endforeach(target)
 
 file(GLOB INCLUDE_FILES ${PROJECT_SOURCE_DIR}/include/*.h)
 file(GLOB BIN_INCLUDE_FILES ${PROJECT_BINARY_DIR}/include/*.h)
@@ -293,6 +298,9 @@ list(APPEND INCLUDE_FILES ${BIN_INCLUDE_FILES})
 file(GLOB GL_INCLUDE_FILES include-GL/*.h)
 
 install(FILES ${PROJECT_BINARY_DIR}/libSDL.a DESTINATION "lib${LIB_SUFFIX}")
+
+install(FILES ${PROJECT_BINARY_DIR}/libSDL.so DESTINATION "lib${LIB_SUFFIX}")
+
 install(FILES ${INCLUDE_FILES} DESTINATION include/SDL)
 install(FILES ${GL_INCLUDE_FILES} DESTINATION include/GL)
 
