@@ -1101,7 +1101,7 @@ void SDL_UpdateRects(SDL_Surface *screen, int numrects, SDL_Rect *rects) {
  */
 int SDL_Flip(SDL_Surface *screen)
 {
-#ifdef __AMIGA__
+#if defined(__AMIGA__) && !defined(__amigaos4__)
 	extern int skipframe,toggle;
 
 	if (skipframe) {
