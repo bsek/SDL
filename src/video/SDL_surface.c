@@ -425,7 +425,7 @@ int SDL_LowerBlit (SDL_Surface *src, SDL_Rect *srcrect,
 	SDL_blit do_blit;
 	SDL_Rect hw_srcrect;
 	SDL_Rect hw_dstrect;
-#ifdef __AMIGA__
+#if defined(__AMIGA__) && !defined(__amigaos4__)
 	int skipflag = 0;
 
 	/* applies to software blitting only */
@@ -450,7 +450,7 @@ int SDL_LowerBlit (SDL_Surface *src, SDL_Rect *srcrect,
 				return(-1);
 			}
 		}
-#ifdef __AMIGA__
+#if defined(__AMIGA__) && !defined(__amigaos4__)
 	}
 #endif
 
@@ -481,7 +481,7 @@ int SDL_UpperBlit (SDL_Surface *src, SDL_Rect *srcrect,
 {
         SDL_Rect fulldst;
 	int srcx, srcy, w, h;
-#ifdef __AMIGA__
+#if defined(__AMIGA__) && !defined(__amigaos4__)
 	extern int toggle,skipframe;
 #endif
 	/* Make sure the surfaces aren't locked */
