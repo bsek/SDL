@@ -589,7 +589,7 @@ SDL_Surface *SDL_SetVideoMode(int width, int height, int bpp, Uint32 flags) {
 		sysevents_mouse_pressed = 0;
 	#endif
 
-#ifdef __AMIGA__
+#if defined(__AMIGA__) && !defined(__amigaos4__)
 #ifndef APOLLO_BLIT
 	flags &= ~SDL_DOUBLEBUF;
 #endif
